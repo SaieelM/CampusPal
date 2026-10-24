@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { ScrollView, Text, View } from 'react-native';
 import { Stack, router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import * as Notifications from 'expo-notifications';
+import * as Notifications from '../lib/expoNotifications';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { Loading } from '../components/ui';

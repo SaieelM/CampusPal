@@ -3,7 +3,7 @@
 //  • an evening nudge to mark the day's attendance
 //  • instant alerts when a course falls below the ordinance minimum
 import { Platform } from 'react-native';
-import * as Notifications from 'expo-notifications';
+import * as Notifications from './expoNotifications';
 
 import { kvGet, kvSet } from './db';
 import { minutes, todayStr } from './dates';
@@ -28,7 +28,6 @@ export async function setupNotifications() {
       // On Android 13+ the permission prompt only appears once a channel exists.
       await Notifications.setNotificationChannelAsync(CHANNEL_ID, {
         name: 'Lecture reminders & attendance alerts',
-        // eslint-disable-next-line import/namespace -- exported enum; the rule can't see TS enums
         importance: Notifications.AndroidImportance.HIGH,
       });
     }
