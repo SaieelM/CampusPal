@@ -1,0 +1,64 @@
+rules_version = '2';
+// CampusPal Firestore security rules.
+// Paste into Firebase console → Firestore Database → Rules → Publish.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() { return request.auth != null; }
+    function verified() {
+      return signedIn()
+        && request.auth.token.email_verified == true
+        && request.auth.token.email.matches('.*unigoa[.]ac[.]in$');
+    }
+    function isOwner(uid) { return signedIn() && request.auth.uid == uid; }
+
+    // Student profiles: readable by verified students, writable only by the owner.
+    match /users/{uid} {
+      allow read: if verified();
+      allow create, update: if isOwner(uid) && request.auth.token.email_verified == true;
+      allow delete: if false;
+    }
+
+    // Shared class timetables: anyone verified can read (join by code);
+    // only the creator can change it.
+    match /classes/{code} {
+      allow read: if verified();
+      allow create: if verified() && request.resource.data.createdBy == request.auth.uid;
+      allow update: if verified() && resource.data.createdBy == request.auth.uid
+                    && request.resource.data.createdBy == resource.data.createdBy;
+      allow delete: if verified() && resource.data.createdBy == request.auth.uid;
+    }
+
+    // Notes metadata (files live on Cloudinary).
+    match /notes/{noteId} {
+      allow read: if verified();
+      allow create: if verified()
+        && request.resource.data.uploadedBy == request.auth.uid
+        && request.resource.data.upvotes == 0
+        && request.resource.data.reports == 0
+        && request.resource.data.hidden == false;
+      // Owner may edit anything; others may only touch the counters.
+      allow update: if verified() && (
+        resource.data.uploadedBy == request.auth.uid ||
+        request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(['upvotes', 'ratingSum', 'ratingCount', 'downloads', 'reports', 'hidden'])
+      );
+      allow delete: if verified() && resource.data.uploadedBy == request.auth.uid;
+
+      match /votes/{uid} {
+        allow read: if verified();
+        allow write: if verified() && request.auth.uid == uid;
+      }
+      match /reports/{uid} {
+        allow read: if verified() && request.auth.uid == uid;
+        allow create: if verified() && request.auth.uid == uid;
+      }
+    }
+
+    // Feedback: write-only for students (read it in the console).
+    match /feedback/{id} {
+      allow create: if verified() && request.resource.data.uid == request.auth.uid;
+      allow read, update, delete: if false;
+    }
+  }
+}
