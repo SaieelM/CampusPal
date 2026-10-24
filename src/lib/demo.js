@@ -1,43 +1,18 @@
-// Admin-only demo data for presentations:
+// Admin-only demo data for presentations and testing:
 //  • two shared classes (MCA Sem III and Sem I, from the GBS timetable)
-//  • attendance history on this phone for the Sem III demo class
+//  • attendance scenarios on this phone for the Sem III demo class (demoPlan.js)
 //  • a handful of notes with real (generated) PDFs on Cloudinary
 import * as Print from 'expo-print';
 import { addDoc, collection, getDocs, limit, query, serverTimestamp, where } from 'firebase/firestore';
 
 import { createClass, fetchClass, findClassByName } from './classes';
-import { clearClassData, setHoliday, setRecord, withTransaction } from './db';
-import { addDays, todayStr } from './dates';
+import { clearClassData, kvGet, kvSet, setHoliday, setRecord, withTransaction } from './db';
+import { planDemoAttendance } from './demoPlan';
 import { db } from './firebase';
 import { uploadPdf } from './notes';
 import { MCA_SEM1_SAMPLE, MCA_SEM3_SAMPLE } from './sampleTimetable';
-import { lecturesOn } from './timetable';
 
 export const DEMO_SUFFIX = ' (Demo)';
-
-/** Demo student in the Sem III class. */
-export const DEMO_MEMBERSHIP = {
-  batch: 'Batch 1',
-  electives: ['TDD and Design Patterns', 'DSVE2 – Cloud Computing', 'DSVE3 – Mobile Application Development'],
-};
-
-// Holidays in the demo history (Ganesh Chaturthi, Gandhi Jayanti).
-const DEMO_HOLIDAYS = ['2026-09-14', '2026-10-02'];
-
-// How often the demo student attends each subject (Cryptography is kept low
-// on purpose so the 50% ordinance warning shows up in the demo).
-const ATTEND_RATE = { crypto: 0.65, cloudlab: 0.8, default: 0.9 };
-const CANCEL_RATE = 0.04;
-
-// Small deterministic hash → the demo looks the same every time it's loaded.
-function rand(seed) {
-  let h = 2166136261;
-  for (let i = 0; i < seed.length; i++) {
-    h ^= seed.charCodeAt(i);
-    h = Math.imul(h, 16777619);
-  }
-  return ((h >>> 0) % 10000) / 10000;
-}
 
 /** Creates the demo classes if they don't exist yet. Returns { sem3, sem1 } class objects. */
 export async function ensureDemoClasses(uid) {
@@ -52,39 +27,22 @@ export async function ensureDemoClasses(uid) {
 }
 
 /**
- * Fills this phone with attendance for the Sem III demo class from the
- * semester start until yesterday (today and yesterday are left unmarked so
- * the "catch up" banner can be shown in the demo).
+ * Replaces this phone's attendance for the Sem III demo class with a test
+ * scenario (see SCENARIOS in demoPlan.js). Returns the demo membership.
  */
-export async function generateDemoAttendance(cls) {
-  const code = cls.code;
-  const membership = { code, ...DEMO_MEMBERSHIP };
-  await clearClassData(code);
-  const stopBefore = addDays(todayStr(), -1);
-  let count = 0;
+export async function generateDemoAttendance(cls, scenarioKey) {
+  const { membership, holidays, records } = planDemoAttendance(cls, scenarioKey);
+  await clearClassData(cls.code);
   await withTransaction(async () => {
-    for (const h of DEMO_HOLIDAYS) await setHoliday(code, h, true);
-    for (let date = cls.startDate; date < stopBefore; date = addDays(date, 1)) {
-      if (DEMO_HOLIDAYS.includes(date)) continue;
-      for (const l of lecturesOn(cls, membership, date)) {
-        if (l.kind !== 'mine') continue;
-        const r = rand(`${date}|${l.key}`);
-        const rate = ATTEND_RATE[l.subject.id] ?? ATTEND_RATE.default;
-        const status = r < CANCEL_RATE ? 'cancelled' : rand(`${l.key}|${date}`) < rate ? 'present' : 'absent';
-        await setRecord(code, {
-          date,
-          slotKey: l.key,
-          subjectId: l.subject.id,
-          status,
-          count: l.count,
-          start: l.start,
-          end: l.end,
-        });
-        count += 1;
-      }
-    }
+    for (const h of holidays) await setHoliday(cls.code, h, true);
+    for (const r of records) await setRecord(cls.code, r);
   });
-  return { membership, count };
+  await kvSet('demoScenario', scenarioKey);
+  return { membership, count: records.length };
+}
+
+export async function currentDemoScenario() {
+  return kvGet('demoScenario');
 }
 
 // ---------- demo notes ----------

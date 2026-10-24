@@ -10,7 +10,8 @@ import { deleteClass, leaveClass, listAllClasses, memberCount, recordMember } fr
 import { useClass } from '../lib/ClassContext';
 import { isCloudinaryConfigured } from '../lib/config';
 import { formatDate, toDateStr, todayStr } from '../lib/dates';
-import { createDemoNotes, demoNotesExist, ensureDemoClasses, generateDemoAttendance } from '../lib/demo';
+import { createDemoNotes, currentDemoScenario, demoNotesExist, ensureDemoClasses, generateDemoAttendance } from '../lib/demo';
+import { SCENARIOS } from '../lib/demoPlan';
 import { deleteNote, listFeedback, listReportedNotes, restoreNote } from '../lib/notes';
 import { useTheme } from '../lib/theme';
 
@@ -27,6 +28,8 @@ export default function Admin() {
   const [error, setError] = useState('');
   const [refreshing, setRefreshing] = useState(false);
   const [demoStage, setDemoStage] = useState('');
+  const [scenario, setScenario] = useState(null); // scenario loaded on this phone
+  const [scenarioBusy, setScenarioBusy] = useState(null);
   const [busyId, setBusyId] = useState(null);
   const admin = isAdminEmail(user?.email);
 
@@ -51,6 +54,7 @@ export default function Admin() {
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- loads async data on mount
     if (admin) load();
+    currentDemoScenario().then(setScenario);
   }, [admin, load]);
 
   if (!admin) {
@@ -67,36 +71,51 @@ export default function Admin() {
     setRefreshing(false);
   };
 
-  const loadDemo = async () => {
-    const ok = await confirm(
-      'Load demo data?',
-      'Creates the MCA Sem III and Sem I demo classes and demo notes, and switches THIS phone to the Sem III demo class with attendance history since 10 Aug.',
-      'Load demo'
-    );
+  // Shared demo content: the two demo classes and the demo notes.
+  const loadDemoContent = async () => {
+    const ok = await confirm('Create demo classes and notes?', 'Adds MCA Sem III (Demo), MCA Sem I (Demo) and six demo notes for everyone. Already-created ones are reused.', 'Create');
     if (!ok) return;
     try {
       setDemoStage('Creating demo classes…');
-      const { sem3 } = await ensureDemoClasses(user.uid);
-
-      setDemoStage('Generating attendance history…');
-      const { membership: m } = await generateDemoAttendance(sem3);
-      const full = { ...m, joinedAt: todayStr() };
-      await joinClass(sem3, full);
-      await recordMember(sem3.code, user, full);
-
+      await ensureDemoClasses(user.uid);
       if (!isCloudinaryConfigured) {
         toast('Demo classes ready. Notes skipped: Cloudinary is not configured.');
       } else if (await demoNotesExist()) {
-        toast('Demo data ready (demo notes already existed)');
+        toast('Demo classes ready (demo notes already existed)');
       } else {
         await createDemoNotes(user, (done, total) => setDemoStage(`Uploading demo notes ${done}/${total}…`));
-        toast('Demo data ready');
+        toast('Demo classes and notes ready');
       }
       await load();
     } catch (e) {
-      toast(e?.message || 'Could not load demo data');
+      toast(e?.message || 'Could not create demo data');
     } finally {
       setDemoStage('');
+    }
+  };
+
+  // Test attendance on THIS phone: joins the Sem III demo class with a scenario.
+  const loadScenario = async (key) => {
+    const ok = await confirm(
+      `Load "${SCENARIOS[key].label}"?`,
+      'Switches this phone to MCA Sem III (Demo) and replaces its attendance with this scenario. Attendance for other classes stays saved.',
+      'Load'
+    );
+    if (!ok) return;
+    setScenarioBusy(key);
+    try {
+      const { sem3 } = await ensureDemoClasses(user.uid);
+      const { membership: m } = await generateDemoAttendance(sem3, key);
+      const full = { ...m, joinedAt: todayStr() };
+      await joinClass(sem3, full);
+      await recordMember(sem3.code, user, full);
+      setScenario(key);
+      toast(`${SCENARIOS[key].label} loaded`);
+      router.navigate('/attendance');
+    } catch (e) {
+      toast(e?.message || 'Could not load the scenario');
+    } finally {
+      setScenarioBusy(null);
     }
   };
 
@@ -152,12 +171,41 @@ export default function Admin() {
     <Screen edges={[]} refreshing={refreshing} onRefresh={onRefresh}>
       {error ? <Banner status="danger">{error}</Banner> : null}
 
-      <Heading>Demo data</Heading>
+      <Heading>Demo classes and notes</Heading>
       <Card>
-        <Body>Two demo classes from the GBS timetable, attendance history on this phone and six demo notes.</Body>
+        <Body>MCA Sem III and Sem I demo classes from the GBS timetable, plus six demo notes. Shared with everyone.</Body>
         {demoStage ? <Text style={{ color: t.primary, marginTop: 8, fontWeight: '600' }}>{demoStage}</Text> : null}
-        <Button title="Load demo data" icon="flash-outline" onPress={loadDemo} loading={Boolean(demoStage)} style={{ marginTop: 10 }} />
+        <Button title="Create demo classes and notes" icon="flash-outline" onPress={loadDemoContent} loading={Boolean(demoStage)} style={{ marginTop: 10 }} />
       </Card>
+
+      <Heading>Test attendance on this phone</Heading>
+      <Body muted style={{ marginBottom: 10, fontSize: 13 }}>
+        Joins MCA Sem III (Demo) as Batch 1 with TDD, Cloud Computing and Mobile App Dev electives, and fills attendance from 10 Aug.
+      </Body>
+      {Object.entries(SCENARIOS).map(([key, sc]) => (
+        <Card key={key} style={scenario === key ? { borderColor: t.primary, borderWidth: 2 } : null}>
+          <Row style={{ justifyContent: 'space-between' }}>
+            <Text style={{ color: t.text, fontWeight: '700', fontSize: 16 }}>{sc.label}</Text>
+            {scenario === key ? <Text style={{ color: t.primary, fontWeight: '700', fontSize: 13 }}>Loaded</Text> : null}
+          </Row>
+          <Text style={{ color: t.muted, marginTop: 2, marginBottom: 6 }}>{sc.description}</Text>
+          {sc.expect.map((line) => (
+            <Text key={line} style={{ color: t.text, fontSize: 13, lineHeight: 19 }}>
+              • {line}
+            </Text>
+          ))}
+          <Button
+            small
+            title={scenario === key ? 'Reload this scenario' : 'Load this scenario'}
+            variant={scenario === key ? 'secondary' : 'primary'}
+            icon="play-outline"
+            loading={scenarioBusy === key}
+            disabled={Boolean(scenarioBusy)}
+            onPress={() => loadScenario(key)}
+            style={{ marginTop: 10 }}
+          />
+        </Card>
+      ))}
 
       <Heading>{`All classes${classes ? ` (${classes.length})` : ''}`}</Heading>
       {classes === null && !error ? <Loading /> : null}
