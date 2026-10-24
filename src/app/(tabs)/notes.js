@@ -102,7 +102,7 @@ export default function Notes() {
                 You’re offline – showing the last loaded list. Your downloaded notes still open.
               </Banner>
             ) : null}
-            <Input placeholder="Search subject, title, code, professor…" value={search} onChangeText={setSearch} style={{ marginBottom: 10 }} />
+            <Input placeholder="Search notes" value={search} onChangeText={setSearch} style={{ marginBottom: 10 }} />
             <ChipRow style={{ marginBottom: 6 }}>
               <Chip label="All sems" selected={semester === 'all'} onPress={() => setSemester('all')} />
               {semesters.map((s) => (

@@ -5,7 +5,7 @@ import { router } from 'expo-router';
 
 import { Banner, Body, Button, Card, Chip, ChipRow, Heading, Row, Screen, confirm, toast } from '../../components/ui';
 import { useAuth } from '../../lib/auth';
-import { leaveClass } from '../../lib/classes';
+import { leaveClass, removeMember } from '../../lib/classes';
 import { useClass } from '../../lib/ClassContext';
 import { formatDate } from '../../lib/dates';
 import { electiveGroups } from '../../lib/timetable';
@@ -49,6 +49,7 @@ export default function ClassSettings() {
   const leave = async () => {
     const ok = await confirm('Leave this class?', 'Your attendance for this class will be deleted from this phone.', 'Leave', true);
     if (!ok) return;
+    await removeMember(cls.code, user.uid);
     await leaveClass({ deleteAttendance: true });
     await reload();
     router.back();

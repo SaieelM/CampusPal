@@ -5,6 +5,7 @@ import Constants from 'expo-constants';
 import { Ionicons } from '@expo/vector-icons';
 
 import { Card, Heading, Screen, Title, confirm } from '../../components/ui';
+import { isAdminEmail } from '../../lib/admins';
 import { useAuth } from '../../lib/auth';
 import { useClass } from '../../lib/ClassContext';
 import { notificationsEnabled, setNotificationsEnabled } from '../../lib/notifications';
@@ -84,7 +85,7 @@ export default function Profile() {
           sub="10 min before each lecture + evening nudge"
           right={<Switch value={notify} onValueChange={toggleNotify} trackColor={{ true: t.primary }} />}
         />
-        {!cls ? <Item icon="create-outline" label="Create class timetable (CR)" onPress={() => router.push('/class/edit')} /> : null}
+        {!cls ? <Item icon="create-outline" label="Create class timetable" sub="For class representatives" onPress={() => router.push('/class/edit')} /> : null}
       </Card>
 
       <Heading>Notes</Heading>
@@ -92,6 +93,15 @@ export default function Profile() {
         <Item icon="cloud-upload-outline" label="My uploads" onPress={() => router.push('/notes/mine')} />
         <Item icon="add-circle-outline" label="Upload notes" onPress={() => router.push('/notes/upload')} />
       </Card>
+
+      {isAdminEmail(user.email) ? (
+        <>
+          <Heading>Admin</Heading>
+          <Card style={{ paddingVertical: 0 }}>
+            <Item icon="shield-checkmark-outline" label="Admin tools" sub="Demo data, all classes, reported notes, feedback" onPress={() => router.push('/admin')} />
+          </Card>
+        </>
+      ) : null}
 
       <Heading>Account</Heading>
       <Card style={{ paddingVertical: 0 }}>

@@ -24,10 +24,18 @@ Scan the QR code with Expo Go (phone and laptop on the same Wi-Fi; if college Wi
 ## 3. First run / demo flow
 
 1. Sign up with a `@unigoa.ac.in` email → click the link in the verification email → set course & semester.
-2. **Attendance tab → Create class timetable (CR)** → *Load MCA Sem III sample* → check times → **Create class & get code**.
+2. Admin: **Profile → Admin tools → Load demo data** (demo classes, attendance history, notes). Or a CR: **Attendance → Create class timetable**.
 3. Join the class with that code → pick batch + electives → catch up on past lectures.
 4. Other students: **Join with class code**.
 5. **Notes tab → Upload** → scan pages with the camera → fill details → upload. Open, upvote, rate, download for offline.
+
+## Admins
+
+Admins can load demo data, delete any class, review reported notes and read feedback.
+
+1. Add the email to `ADMIN_EMAILS` in [`src/lib/admins.js`](src/lib/admins.js).
+2. Add the same email to `adminEmails()` in [`firestore.rules`](firestore.rules), then re-publish the rules in the Firebase console.
+3. Log in with that account → **Profile → Admin tools**.
 
 ## 4. Build the APK (for submission)
 

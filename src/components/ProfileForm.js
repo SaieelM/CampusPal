@@ -41,7 +41,6 @@ export function ProfileForm({ submitLabel, onDone }) {
         value={course}
         onChangeText={setCourse}
         autoCapitalize="characters"
-        placeholder="MCA"
         error={errors.course}
         hint={hints.course ? `Detected from your email: ${hints.course}${hints.batchYear ? `, batch ${hints.batchYear}` : ''}` : undefined}
       />

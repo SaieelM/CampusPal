@@ -80,6 +80,9 @@ function RootStack() {
           <Stack.Screen name="class/catchup" options={{ title: 'Catch up' }} />
           <Stack.Screen name="class/extra" options={{ title: 'Add extra lecture', presentation: 'modal' }} />
           <Stack.Screen name="class/settings" options={{ title: 'My class' }} />
+          <Stack.Screen name="class/week" options={{ title: 'Week view' }} />
+          <Stack.Screen name="subjects" options={{ title: 'Subjects' }} />
+          <Stack.Screen name="admin" options={{ title: 'Admin' }} />
           <Stack.Screen name="subject/[id]" options={{ title: 'Subject' }} />
           <Stack.Screen name="notes/upload" options={{ title: 'Upload notes' }} />
           <Stack.Screen name="notes/[id]" options={{ title: 'Notes' }} />

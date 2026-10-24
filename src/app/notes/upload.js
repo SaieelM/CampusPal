@@ -158,7 +158,7 @@ export default function UploadNotes() {
       <Body muted style={{ marginTop: 6, fontSize: 13 }}>Max {MAX_UPLOAD_MB} MB per upload.</Body>
 
       <Heading>2. Describe it</Heading>
-      <Input label="Title" placeholder="e.g. Unit 2 – Virtualisation" value={form.title} onChangeText={set('title')} error={errors.title} />
+      <Input label="Title" value={form.title} onChangeText={set('title')} error={errors.title} />
       {suggestions.length ? (
         <>
           <Label>Subject (tap to fill)</Label>
@@ -169,10 +169,10 @@ export default function UploadNotes() {
           </ChipRow>
         </>
       ) : null}
-      <Input label={suggestions.length ? 'Or type the subject' : 'Subject'} placeholder="e.g. Cloud Computing" value={form.subject} onChangeText={set('subject')} error={errors.subject} />
+      <Input label={suggestions.length ? 'Or type the subject' : 'Subject'} value={form.subject} onChangeText={set('subject')} error={errors.subject} />
       <Row style={{ gap: 10 }}>
-        <Input label="Course code" placeholder="CSA-6402" autoCapitalize="characters" value={form.courseCode} onChangeText={set('courseCode')} style={{ flex: 1 }} />
-        <Input label="Professor" placeholder="Optional" value={form.professor} onChangeText={set('professor')} style={{ flex: 1 }} />
+        <Input label="Course code" autoCapitalize="characters" value={form.courseCode} onChangeText={set('courseCode')} style={{ flex: 1 }} />
+        <Input label="Professor (optional)" value={form.professor} onChangeText={set('professor')} style={{ flex: 1 }} />
       </Row>
       <Label>Type</Label>
       <ChipRow>

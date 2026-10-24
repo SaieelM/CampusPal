@@ -70,6 +70,12 @@ export function useMarking() {
     [code, refreshRecords]
   );
 
+  /** Set a lecture to present / absent / cancelled, or clear it with `null`. */
+  const setStatus = useCallback(
+    async (lecture, status) => (status ? mark(lecture, status) : clear(lecture)),
+    [mark, clear]
+  );
+
   /** Marks a whole day as a holiday (its lectures stop counting) or undoes it. */
   const toggleHoliday = useCallback(
     async (date, isHoliday) => {
@@ -79,5 +85,5 @@ export function useMarking() {
     [code, refreshRecords]
   );
 
-  return { mark, markMany, clear, toggleHoliday };
+  return { mark, markMany, clear, setStatus, toggleHoliday };
 }

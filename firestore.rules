@@ -4,61 +4,85 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    // Keep this list in sync with ADMIN_EMAILS in src/lib/admins.js
+    function adminEmails() {
+      return [
+        // 'mca24.0000.name@unigoa.ac.in',
+      ];
+    }
+
     function signedIn() { return request.auth != null; }
     function verified() {
       return signedIn()
         && request.auth.token.email_verified == true
         && request.auth.token.email.matches('.*unigoa[.]ac[.]in$');
     }
+    function isAdmin() { return verified() && request.auth.token.email.lower() in adminEmails(); }
     function isOwner(uid) { return signedIn() && request.auth.uid == uid; }
 
     // Student profiles: readable by verified students, writable only by the owner.
     match /users/{uid} {
       allow read: if verified();
       allow create, update: if isOwner(uid) && request.auth.token.email_verified == true;
-      allow delete: if false;
+      allow delete: if isAdmin();
     }
 
-    // Shared class timetables: anyone verified can read (join by code);
-    // only the creator can change it.
+    // Shared class timetables. Students can open a class by its code but can't
+    // browse the full list; only the creator (or an admin) can change it.
     match /classes/{code} {
-      allow read: if verified();
+      allow get: if verified();
+      allow list: if isAdmin();
       allow create: if verified() && request.resource.data.createdBy == request.auth.uid;
       allow update: if verified() && resource.data.createdBy == request.auth.uid
                     && request.resource.data.createdBy == resource.data.createdBy;
-      allow delete: if verified() && resource.data.createdBy == request.auth.uid;
+      allow delete: if isAdmin() || (verified() && resource.data.createdBy == request.auth.uid);
+
+      // Who joined (for the admin's student count).
+      match /members/{uid} {
+        allow read: if isAdmin() || (verified() && get(/databases/$(database)/documents/classes/$(code)).data.createdBy == request.auth.uid);
+        allow create, update, delete: if isOwner(uid) || isAdmin();
+      }
+    }
+
+    // One document per class name, so two classes can't share a name.
+    match /classNames/{key} {
+      allow get: if verified();
+      allow create: if verified() && request.resource.data.createdBy == request.auth.uid;
+      allow delete: if isAdmin() || (verified() && resource.data.createdBy == request.auth.uid);
     }
 
     // Notes metadata (files live on Cloudinary).
     match /notes/{noteId} {
       allow read: if verified();
-      allow create: if verified()
+      allow create: if isAdmin() || (verified()
         && request.resource.data.uploadedBy == request.auth.uid
         && request.resource.data.upvotes == 0
         && request.resource.data.reports == 0
-        && request.resource.data.hidden == false;
-      // Owner may edit anything; others may only touch the counters.
-      allow update: if verified() && (
+        && request.resource.data.hidden == false);
+      // Owner/admin may edit anything; others may only touch the counters.
+      allow update: if isAdmin() || (verified() && (
         resource.data.uploadedBy == request.auth.uid ||
         request.resource.data.diff(resource.data).affectedKeys()
           .hasOnly(['upvotes', 'ratingSum', 'ratingCount', 'downloads', 'reports', 'hidden'])
-      );
-      allow delete: if verified() && resource.data.uploadedBy == request.auth.uid;
+      ));
+      allow delete: if isAdmin() || (verified() && resource.data.uploadedBy == request.auth.uid);
 
       match /votes/{uid} {
         allow read: if verified();
         allow write: if verified() && request.auth.uid == uid;
       }
       match /reports/{uid} {
-        allow read: if verified() && request.auth.uid == uid;
+        allow read: if isAdmin() || (verified() && request.auth.uid == uid);
         allow create: if verified() && request.auth.uid == uid;
+        allow delete: if isAdmin();
       }
     }
 
-    // Feedback: write-only for students (read it in the console).
+    // Feedback: write-only for students; admins can read it.
     match /feedback/{id} {
       allow create: if verified() && request.resource.data.uid == request.auth.uid;
-      allow read, update, delete: if false;
+      allow read, delete: if isAdmin();
+      allow update: if false;
     }
   }
 }

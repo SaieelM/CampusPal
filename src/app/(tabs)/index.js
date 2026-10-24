@@ -3,7 +3,8 @@ import { useCallback, useMemo, useState } from 'react';
 import { Text, View } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
 
-import { LectureRow, OverallCard } from '../../components/AttendanceViews';
+import { OverallCard } from '../../components/AttendanceViews';
+import { DayTable } from '../../components/DayTable';
 import { NoteCard } from '../../components/NoteCard';
 import { Banner, Button, Card, Heading, Row, Screen, Title } from '../../components/ui';
 import { computeStats, subjectTitle } from '../../lib/attendance';
@@ -24,7 +25,7 @@ export default function Home() {
   const t = useTheme();
   const { profile } = useAuth();
   const { cls, membership, records, holidays } = useClass();
-  const { mark, clear } = useMarking();
+  const { setStatus } = useMarking();
   const [topNotes, setTopNotes] = useState([]);
   const today = todayStr();
 
@@ -116,9 +117,7 @@ export default function Home() {
                   {next.room ? ` in ${next.room}` : ''}
                 </Text>
               ) : null}
-              {todays.map((l) => (
-                <LectureRow key={l.key} lecture={l} compact status={statusBySlot[l.key]} onMark={(s) => mark(l, s)} onClear={() => clear(l)} />
-              ))}
+              <DayTable lectures={todays} statusBySlot={statusBySlot} onChange={setStatus} />
             </>
           )}
 

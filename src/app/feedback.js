@@ -44,7 +44,6 @@ export default function Feedback() {
       <Input
         label="Message"
         multiline
-        placeholder={type === 'bug' ? 'What happened? What did you expect?' : 'Describe your idea'}
         value={message}
         onChangeText={(v) => {
           setMessage(v);

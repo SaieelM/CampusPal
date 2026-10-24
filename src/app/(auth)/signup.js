@@ -40,7 +40,7 @@ export default function Signup() {
       <Body muted style={{ marginBottom: 20 }}>
         Only students with a Goa University email can join.
       </Body>
-      <Input label="Full name" placeholder="As on your ID card" value={form.name} onChangeText={set('name')} error={errors.name} autoComplete="name" />
+      <Input label="Full name" value={form.name} onChangeText={set('name')} error={errors.name} autoComplete="name" />
       <Input
         label="College email"
         placeholder={`mca24.0000.name@${ALLOWED_EMAIL_DOMAIN}`}

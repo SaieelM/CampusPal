@@ -150,6 +150,22 @@ export function unmarkedLectures(cls, membership, records, holidays) {
   return out;
 }
 
+/**
+ * Status of a whole day for the week strip:
+ * 'holiday' | 'none' (no lectures of yours) | 'future' | 'done' (all marked) | 'pending'.
+ */
+export function dayState(cls, membership, records, holidays, date) {
+  if (holidays.has(date)) return 'holiday';
+  const mine = lecturesOn(cls, membership, date).filter((l) => l.kind === 'mine');
+  if (!mine.length) return 'none';
+  const today = todayStr();
+  if (date > today) return 'future';
+  const marked = new Set(records.filter((r) => r.date === date).map((r) => r.slot_key));
+  const due = date === today ? mine.filter((l) => minutes(l.end) <= nowMinutes()) : mine;
+  if (date === today && due.length === 0) return 'future';
+  return due.every((l) => marked.has(l.key)) ? 'done' : 'pending';
+}
+
 let idCounter = 0;
 export function newId(prefix = 'id') {
   idCounter += 1;

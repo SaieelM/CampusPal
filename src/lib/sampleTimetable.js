@@ -14,7 +14,7 @@ const S = (id, name, code, professor, type, elective, group) => ({
 });
 
 export const MCA_SEM3_SAMPLE = {
-  name: 'MCA Sem III – AY 2026-27',
+  name: 'MCA Sem III – 2026-27',
   course: 'MCA',
   semester: 3,
   academicYear: '2026-27',
@@ -64,6 +64,65 @@ export const MCA_SEM3_SAMPLE = {
         { id: 'f1', day: 5, start: '09:30', end: '11:30', subjectId: 'crypto', count: 1, batch: null, room: 'GF3' },
         { id: 'f2', day: 5, start: '11:30', end: '13:30', subjectId: 'eh', count: 1, batch: null, room: 'GF5' },
         { id: 'f3', day: 5, start: '14:30', end: '16:30', subjectId: 'uiux', count: 1, batch: null, room: 'GF5' },
+      ],
+    },
+  ],
+};
+
+// Semester I from page 2 of the same sheet. Labs rotate between four lab
+// groups (shown as batches Group 1–4); Bridge course runs on Friday afternoon.
+export const MCA_SEM1_SAMPLE = {
+  name: 'MCA Sem I – 2026-27',
+  course: 'MCA',
+  semester: 1,
+  academicYear: '2026-27',
+  startDate: '2026-08-10',
+  endDate: '',
+  batches: ['Group 1', 'Group 2', 'Group 3', 'Group 4'],
+  subjects: [
+    S('os', 'Operating Systems', 'CSA-5000', 'Yma Pinto', 'theory', false),
+    S('oose', 'Object Oriented Software Engineering', 'CSA-5001', 'Gaurpriya Chodankar', 'theory', false),
+    S('it', 'Internet Technology', 'CSA-5002', 'Ramdas Karmali', 'theory', false),
+    S('psp', 'Problem Solving and Programming', 'CSA-5003', 'Preeti Khorjuvenkar', 'lab', false),
+    S('linux', 'Linux', 'CSA-5004', 'Yma Pinto', 'lab', false),
+    S('oot', 'Object Oriented Technology', 'CSA-5005', 'Hanumant Redkar', 'lab', false),
+    S('maths', 'Mathematics for Computer Science – I', 'CSA-5201', 'Rovan Vaz', 'theory', false),
+    S('fds', 'Fundamentals of Data Science', 'CSA-5202', 'Hanumant Redkar', 'theory', false),
+    S('bridge', 'Bridge Course', '', 'Preeti Khorjuvenkar', 'theory', false),
+    S('bridgelab', 'Bridge Course', '', 'Gaurpriya Chodankar', 'lab', false),
+  ],
+  versions: [
+    {
+      effectiveFrom: '2026-08-10',
+      slots: [
+        // Monday – lab rotation, then OOSE
+        { id: 's1m1', day: 1, start: '09:30', end: '13:30', subjectId: 'psp', count: 1, batch: 'Group 1', room: 'CG10' },
+        { id: 's1m2', day: 1, start: '09:30', end: '13:30', subjectId: 'linux', count: 1, batch: 'Group 2', room: 'FF3' },
+        { id: 's1m3', day: 1, start: '09:30', end: '13:30', subjectId: 'oot', count: 1, batch: 'Group 3', room: 'FF1' },
+        { id: 's1m4', day: 1, start: '09:30', end: '13:30', subjectId: 'psp', count: 1, batch: 'Group 4', room: 'CS1' },
+        { id: 's1m5', day: 1, start: '14:30', end: '16:30', subjectId: 'oose', count: 1, batch: null, room: 'FF8' },
+        // Tuesday – lab rotation, then Internet Technology
+        { id: 's1t1', day: 2, start: '09:30', end: '13:30', subjectId: 'linux', count: 1, batch: 'Group 1', room: 'FF3' },
+        { id: 's1t2', day: 2, start: '09:30', end: '13:30', subjectId: 'oot', count: 1, batch: 'Group 2', room: 'FF1' },
+        { id: 's1t3', day: 2, start: '09:30', end: '13:30', subjectId: 'psp', count: 1, batch: 'Group 3', room: 'CG10' },
+        { id: 's1t4', day: 2, start: '09:30', end: '13:30', subjectId: 'linux', count: 1, batch: 'Group 4', room: 'CS1' },
+        { id: 's1t5', day: 2, start: '14:30', end: '16:30', subjectId: 'it', count: 1, batch: null, room: 'FF8' },
+        // Wednesday
+        { id: 's1w1', day: 3, start: '10:00', end: '12:00', subjectId: 'oose', count: 1, batch: null, room: 'FF8' },
+        { id: 's1w2', day: 3, start: '12:00', end: '13:00', subjectId: 'it', count: 1, batch: null, room: 'FF8' },
+        { id: 's1w3', day: 3, start: '14:00', end: '15:30', subjectId: 'maths', count: 1, batch: null, room: 'FF8' },
+        { id: 's1w4', day: 3, start: '15:30', end: '16:30', subjectId: null, label: 'Mentoring', count: 1, batch: null, room: '' },
+        // Thursday – lab rotation, then Data Science
+        { id: 's1h1', day: 4, start: '09:30', end: '13:30', subjectId: 'oot', count: 1, batch: 'Group 1', room: 'FF1' },
+        { id: 's1h2', day: 4, start: '09:30', end: '13:30', subjectId: 'psp', count: 1, batch: 'Group 2', room: 'CG10' },
+        { id: 's1h3', day: 4, start: '09:30', end: '13:30', subjectId: 'linux', count: 1, batch: 'Group 3', room: 'FF3' },
+        { id: 's1h4', day: 4, start: '09:30', end: '13:30', subjectId: 'oot', count: 1, batch: 'Group 4', room: 'CS1' },
+        { id: 's1h5', day: 4, start: '14:30', end: '16:30', subjectId: 'fds', count: 1, batch: null, room: 'FF8' },
+        // Friday
+        { id: 's1f1', day: 5, start: '10:00', end: '11:00', subjectId: 'os', count: 1, batch: null, room: 'FF8' },
+        { id: 's1f2', day: 5, start: '11:00', end: '13:00', subjectId: 'os', count: 1, batch: null, room: 'FF8' },
+        { id: 's1f3', day: 5, start: '14:00', end: '16:00', subjectId: 'bridgelab', count: 1, batch: null, room: 'CF1' },
+        { id: 's1f4', day: 5, start: '16:00', end: '17:00', subjectId: 'bridge', count: 1, batch: null, room: 'CF1' },
       ],
     },
   ],

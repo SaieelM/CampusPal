@@ -8,13 +8,28 @@ import { DateField } from '../../components/PickerFields';
 import { SlotForm, SubjectForm } from '../../components/TimetableForms';
 import { Banner, Body, Button, Card, Chip, ChipRow, Heading, Input, Loading, Row, Screen, confirm, toast } from '../../components/ui';
 import { subjectTitle } from '../../lib/attendance';
+import { isAdminEmail } from '../../lib/admins';
 import { useAuth } from '../../lib/auth';
-import { createClass, fetchClass, updateClass } from '../../lib/classes';
+import { DuplicateNameError, createClass, fetchClass, updateClass } from '../../lib/classes';
 import { useClass } from '../../lib/ClassContext';
 import { DAY_SHORT, formatTime, isValidDateStr, minutes, todayStr } from '../../lib/dates';
-import { MCA_SEM3_SAMPLE } from '../../lib/sampleTimetable';
+import { MCA_SEM1_SAMPLE, MCA_SEM3_SAMPLE } from '../../lib/sampleTimetable';
 import { latestVersion, newId } from '../../lib/timetable';
 import { useTheme } from '../../lib/theme';
+
+const ROMAN = ['', 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X'];
+
+function currentAcademicYear() {
+  const d = new Date();
+  const y = d.getMonth() >= 5 ? d.getFullYear() : d.getFullYear() - 1;
+  return `${y}-${String((y + 1) % 100).padStart(2, '0')}`;
+}
+
+/** e.g. "MCA Sem III – 2026-27" – a consistent format keeps class names unique. */
+function suggestedName(course, semester, academicYear) {
+  if (!course || !semester) return '';
+  return `${course.toUpperCase()} Sem ${ROMAN[Number(semester)] || semester} – ${academicYear}`;
+}
 
 const EMPTY = {
   name: '',
@@ -35,7 +50,13 @@ export default function EditClass() {
   const { cls: joined, membership, setLocalClass } = useClass();
   const editing = Boolean(code);
 
-  const [form, setForm] = useState({ ...EMPTY, course: profile?.course || '', semester: String(profile?.semester || '') });
+  const [form, setForm] = useState(() => {
+    const course = profile?.course || '';
+    const semester = String(profile?.semester || '');
+    const academicYear = currentAcademicYear();
+    return { ...EMPTY, course, semester, academicYear, name: suggestedName(course, semester, academicYear) };
+  });
+  const admin = isAdminEmail(user?.email);
   const [original, setOriginal] = useState(null);
   const [effectiveFrom, setEffectiveFrom] = useState(todayStr());
   const [loading, setLoading] = useState(editing);
@@ -88,9 +109,8 @@ export default function EditClass() {
     );
   }
 
-  const loadSample = async () => {
-    if (form.subjects.length && !(await confirm('Replace current entries?', 'This will load the MCA Sem III sample timetable.', 'Load sample'))) return;
-    const s = MCA_SEM3_SAMPLE;
+  const loadSample = async (s) => {
+    if (form.subjects.length && !(await confirm('Replace current entries?', `This will load the ${s.name} timetable.`, 'Load sample'))) return;
     setForm({ ...s, semester: String(s.semester), slots: s.versions[0].slots });
     toast('Sample loaded – please verify the times');
   };
@@ -210,12 +230,13 @@ export default function EditClass() {
         // Keep older versions so past attendance stays as it was; replace anything from `from` onwards.
         const versions = [...(original.versions || []).filter((v) => v.effectiveFrom < from), { effectiveFrom: from, slots: form.slots }];
         const data = { ...payload(), versions };
-        await updateClass(original.code, data);
+        await updateClass(original.code, data, original.name);
         if (membership?.code === original.code) await setLocalClass({ ...joined, ...data, code: original.code, createdBy: original.createdBy });
         toast('Timetable updated for everyone');
         router.back();
       }
     } catch (e) {
+      if (e instanceof DuplicateNameError) setErrors((x) => ({ ...x, name: e.message }));
       toast(e.message || 'Could not save. Check your internet.');
     } finally {
       setSaving(false);
@@ -229,7 +250,12 @@ export default function EditClass() {
           <Body>
             You create the timetable once; classmates join with a code. Fill it from the timetable your college shared.
           </Body>
-          <Button small title="Load MCA Sem III sample" icon="flash-outline" variant="outline" onPress={loadSample} style={{ marginTop: 10, alignSelf: 'flex-start' }} />
+          {admin ? (
+            <Row style={{ gap: 8, marginTop: 10, flexWrap: 'wrap' }}>
+              <Button small title="Load Sem III sample" icon="flash-outline" variant="outline" onPress={() => loadSample(MCA_SEM3_SAMPLE)} />
+              <Button small title="Load Sem I sample" icon="flash-outline" variant="outline" onPress={() => loadSample(MCA_SEM1_SAMPLE)} />
+            </Row>
+          ) : null}
         </Card>
       ) : (
         <Card style={{ backgroundColor: t.primarySoft, borderColor: t.primarySoft }}>
@@ -244,12 +270,12 @@ export default function EditClass() {
       )}
 
       <Heading>Class details</Heading>
-      <Input label="Class name" placeholder="e.g. MCA Sem III – AY 2026-27" value={form.name} onChangeText={set('name')} error={errors.name} />
+      <Input label="Class name" value={form.name} onChangeText={set('name')} error={errors.name} hint="Must be unique. Format: MCA Sem III – 2026-27" />
       <Row style={{ gap: 10 }}>
-        <Input label="Course" placeholder="MCA" autoCapitalize="characters" value={form.course} onChangeText={set('course')} error={errors.course} style={{ flex: 1 }} />
-        <Input label="Semester" placeholder="3" keyboardType="number-pad" value={form.semester} onChangeText={set('semester')} error={errors.semester} style={{ flex: 1 }} />
+        <Input label="Course" autoCapitalize="characters" value={form.course} onChangeText={set('course')} error={errors.course} style={{ flex: 1 }} />
+        <Input label="Semester" keyboardType="number-pad" value={form.semester} onChangeText={set('semester')} error={errors.semester} style={{ flex: 1 }} />
       </Row>
-      <Input label="Academic year (optional)" placeholder="2026-27" value={form.academicYear} onChangeText={set('academicYear')} />
+      <Input label="Academic year (optional)" value={form.academicYear} onChangeText={set('academicYear')} />
       <DateField label="Semester start date" value={form.startDate} onChange={set('startDate')} />
       {errors.startDate ? <Text style={{ color: t.danger, marginTop: -8, marginBottom: 10 }}>{errors.startDate}</Text> : null}
 
@@ -260,8 +286,8 @@ export default function EditClass() {
           <Chip key={b} label={b} icon="close" onPress={() => removeBatch(b)} />
         ))}
       </ChipRow>
-      <Row style={{ gap: 8 }}>
-        <Input placeholder="e.g. Batch 1" value={batchInput} onChangeText={setBatchInput} onSubmitEditing={addBatch} style={{ flex: 1, marginBottom: 0 }} />
+      <Row style={{ gap: 8, alignItems: 'flex-end' }}>
+        <Input label="New batch name" value={batchInput} onChangeText={setBatchInput} onSubmitEditing={addBatch} style={{ flex: 1, marginBottom: 0 }} />
         <Button small title="Add" onPress={addBatch} />
       </Row>
 

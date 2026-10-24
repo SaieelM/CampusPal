@@ -47,9 +47,9 @@ export function SubjectForm({ visible, initial, onSave, onDelete, onClose }) {
 
   return (
     <Sheet visible={visible} title={initial.name ? 'Edit subject' : 'Add subject'} onClose={onClose}>
-      <Input label="Subject name" placeholder="e.g. Cloud Computing" value={s.name} onChangeText={set('name')} error={error} />
-      <Input label="Course code (optional)" placeholder="e.g. CSA-6402" autoCapitalize="characters" value={s.code} onChangeText={set('code')} />
-      <Input label="Professor (optional)" placeholder="e.g. Sanket Mhamal" value={s.professor} onChangeText={set('professor')} />
+      <Input label="Subject name" value={s.name} onChangeText={set('name')} error={error} />
+      <Input label="Course code (optional)" autoCapitalize="characters" value={s.code} onChangeText={set('code')} />
+      <Input label="Professor (optional)" value={s.professor} onChangeText={set('professor')} />
       <Label>Type</Label>
       <ChipRow>
         <Chip label="Theory" icon="book-outline" selected={s.type === 'theory'} onPress={() => set('type')('theory')} />
@@ -63,7 +63,6 @@ export function SubjectForm({ visible, initial, onSave, onDelete, onClose }) {
       {s.elective ? (
         <Input
           label="Elective name"
-          placeholder="e.g. DSVE2 – Cloud Computing"
           value={s.group}
           onChangeText={set('group')}
           hint="Give the theory and lab of the same elective the SAME name, so students pick them together."
@@ -98,7 +97,7 @@ export function SlotForm({ visible, initial, subjects, batches, onSave, onDelete
       </ChipRow>
 
       {isOther ? (
-        <Input label="Name" placeholder="e.g. Mentoring" value={s.label} onChangeText={set('label')} />
+        <Input label="Name" value={s.label} onChangeText={set('label')} />
       ) : (
         <>
           <Label>Subject</Label>
@@ -139,7 +138,7 @@ export function SlotForm({ visible, initial, subjects, batches, onSave, onDelete
         </>
       ) : null}
 
-      <Input label="Room (optional)" placeholder="e.g. FF8" autoCapitalize="characters" value={s.room} onChangeText={set('room')} error={error} />
+      <Input label="Room (optional)" autoCapitalize="characters" value={s.room} onChangeText={set('room')} error={error} />
       <Button title="Save slot" onPress={save} />
       {onDelete ? <Button title="Delete slot" variant="ghost" onPress={onDelete} style={{ marginTop: 8 }} /> : null}
     </Sheet>

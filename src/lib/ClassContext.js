@@ -16,6 +16,8 @@ export function ClassProvider({ children }) {
   const [records, setRecords] = useState([]);
   const [holidays, setHolidays] = useState(new Set());
   const [loading, setLoading] = useState(true);
+  // True when the class was deleted on the server (e.g. by an admin).
+  const [removed, setRemoved] = useState(false);
 
   const loadRecords = useCallback(async (code) => {
     if (!code) {
@@ -48,7 +50,11 @@ export function ClassProvider({ children }) {
     if (!membership?.code) return false;
     try {
       const fresh = await fetchClass(membership.code);
-      if (!fresh) return false;
+      if (!fresh) {
+        setRemoved(true);
+        return false;
+      }
+      setRemoved(false);
       const before = JSON.stringify(cls);
       const saved = await saveLocalClass(fresh);
       if (JSON.stringify(saved) === before) return false;
@@ -65,6 +71,7 @@ export function ClassProvider({ children }) {
     await saveMembership(m);
     setCls(saved);
     setMembershipState(m);
+    setRemoved(false);
     await loadRecords(m.code);
     await scheduleLectureReminders(saved, m);
   }, [loadRecords]);
@@ -88,6 +95,7 @@ export function ClassProvider({ children }) {
       records,
       holidays,
       loading,
+      removed,
       reload,
       syncFromServer,
       joinClass,
@@ -95,7 +103,7 @@ export function ClassProvider({ children }) {
       setLocalClass,
       refreshRecords: () => loadRecords(membership?.code),
     }),
-    [cls, membership, records, holidays, loading, reload, syncFromServer, joinClass, updateMembership, setLocalClass, loadRecords]
+    [cls, membership, records, holidays, loading, removed, reload, syncFromServer, joinClass, updateMembership, setLocalClass, loadRecords]
   );
 
   return <ClassContext.Provider value={value}>{children}</ClassContext.Provider>;

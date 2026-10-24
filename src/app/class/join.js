@@ -3,7 +3,8 @@ import { Text, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 
 import { Banner, Body, Button, Card, Chip, ChipRow, Heading, Input, Label, Screen, confirm, toast } from '../../components/ui';
-import { fetchClass, normaliseCode } from '../../lib/classes';
+import { useAuth } from '../../lib/auth';
+import { fetchClass, normaliseCode, recordMember } from '../../lib/classes';
 import { useClass } from '../../lib/ClassContext';
 import { formatDate, todayStr } from '../../lib/dates';
 import { setupNotifications } from '../../lib/notifications';
@@ -13,6 +14,7 @@ import { useTheme } from '../../lib/theme';
 export default function JoinClass() {
   const t = useTheme();
   const params = useLocalSearchParams();
+  const { user } = useAuth();
   const { joinClass } = useClass();
   const [code, setCode] = useState(params.code ? String(params.code) : '');
   const [found, setFound] = useState(null);
@@ -64,7 +66,9 @@ export default function JoinClass() {
     setBusy(true);
     try {
       await setupNotifications();
-      await joinClass(found, { code: found.code, batch: batch || null, electives: chosen, joinedAt: todayStr() });
+      const m = { code: found.code, batch: batch || null, electives: chosen, joinedAt: todayStr() };
+      await joinClass(found, m);
+      await recordMember(found.code, user, m);
       toast(`Joined ${found.name}`);
       router.dismissTo('/attendance');
       if (found.startDate < todayStr()) router.push('/class/catchup');
@@ -82,7 +86,7 @@ export default function JoinClass() {
       </Body>
       <Input
         label="Class code"
-        placeholder="e.g. MCA3-7KQ2"
+        placeholder="MCA3-7KQ2"
         autoCapitalize="characters"
         value={code}
         onChangeText={(v) => {

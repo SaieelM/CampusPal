@@ -80,8 +80,7 @@ export default function NoteDetail() {
     run('download', async () => {
       const entry = await downloadNote(note);
       setLocal(entry);
-      toast('Saved for offline reading');
-      await openPdf(entry.uri, note.title);
+      toast('Downloaded – available offline');
     });
 
   const changeVote = (patch) =>
@@ -159,7 +158,7 @@ export default function NoteDetail() {
             />
           </>
         ) : (
-          <Button title="Download & open" icon="cloud-download-outline" onPress={download} loading={busy === 'download'} disabled={offline} />
+          <Button title="Download" icon="cloud-download-outline" onPress={download} loading={busy === 'download'} disabled={offline} />
         )}
         {!note.offlineOnly && note.fileUrl ? (
           <Button title="View online" icon="open-outline" variant="secondary" onPress={() => Linking.openURL(note.fileUrl)} disabled={offline} />

@@ -281,6 +281,24 @@ export async function openPdf(uri, title) {
   await Sharing.shareAsync(uri, { mimeType: 'application/pdf', dialogTitle: title, UTI: 'com.adobe.pdf' });
 }
 
+// ---------- admin ----------
+export async function listReportedNotes() {
+  const snap = await getDocs(query(collection(db, 'notes'), where('reports', '>', 0), limit(100)));
+  return snap.docs.map(toNote).sort((a, b) => (b.reports || 0) - (a.reports || 0));
+}
+
+/** Admin: make a reported note visible again and reset its report counter. */
+export async function restoreNote(noteId) {
+  await updateDoc(doc(db, 'notes', noteId), { hidden: false, reports: 0 });
+}
+
+export async function listFeedback() {
+  const snap = await getDocs(query(collection(db, 'feedback'), limit(50)));
+  return snap.docs
+    .map((d) => ({ id: d.id, ...d.data(), createdAt: d.data().createdAt?.toMillis ? d.data().createdAt.toMillis() : 0 }))
+    .sort((a, b) => b.createdAt - a.createdAt);
+}
+
 // ---------- feedback ----------
 export async function sendFeedback(user, { type, message }) {
   await addDoc(collection(db, 'feedback'), {

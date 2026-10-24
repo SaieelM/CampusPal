@@ -60,7 +60,6 @@ export default function Login() {
       />
       <Input
         label="Password"
-        placeholder="Your password"
         secureTextEntry
         autoComplete="password"
         value={password}

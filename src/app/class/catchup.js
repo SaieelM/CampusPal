@@ -2,7 +2,7 @@
 import { useMemo, useState } from 'react';
 import { Text, View } from 'react-native';
 
-import { LectureRow } from '../../components/AttendanceViews';
+import { DayTable } from '../../components/DayTable';
 import { Body, Button, EmptyState, Row, Screen } from '../../components/ui';
 import { useClass } from '../../lib/ClassContext';
 import { formatDate } from '../../lib/dates';
@@ -15,7 +15,7 @@ const PAGE_DAYS = 10;
 export default function CatchUp() {
   const t = useTheme();
   const { cls, membership, records, holidays } = useClass();
-  const { mark, markMany, toggleHoliday } = useMarking();
+  const { setStatus, markMany, toggleHoliday } = useMarking();
   const [busyDate, setBusyDate] = useState(null);
   const [showDays, setShowDays] = useState(PAGE_DAYS);
 
@@ -77,9 +77,7 @@ export default function CatchUp() {
               onPress={() => run(date, () => toggleHoliday(date, true))}
             />
           </Row>
-          {lectures.map((l) => (
-            <LectureRow key={l.key} lecture={l} compact onMark={(s) => mark(l, s)} onClear={() => {}} />
-          ))}
+          <DayTable lectures={lectures} statusBySlot={{}} onChange={setStatus} />
         </View>
       ))}
       {byDate.length > showDays ? (
