@@ -8,6 +8,7 @@ service cloud.firestore {
     function adminEmails() {
       return [
         // 'mca24.0000.name@unigoa.ac.in',
+        'mca2025.2536.saieel@unigoa.ac.in'
       ];
     }
 
