@@ -5,7 +5,7 @@ Built with Expo (React Native), Firebase (Auth + Firestore) and Cloudinary (PDF 
 
 ## 1. One-time setup
 
-1. Install Node.js (LTS) and, on your Android phone, **Expo Go** from the Play Store.
+1. Install Node.js (LTS). (Expo Go is not used — see section 2.)
 2. In this folder run:
    ```bash
    npm install
@@ -13,18 +13,35 @@ Built with Expo (React Native), Firebase (Auth + Firestore) and Cloudinary (PDF 
 3. Copy **`.env.example`** to **`.env`** and fill in the values (get the team's `.env` privately — it is not in the repo).
 4. Firebase console → **Firestore Database → Rules** → paste the contents of [`firestore.rules`](firestore.rules) → **Publish**.
 
-## 2. Run it on your phone
+## 2. Run it on your phone (development build)
+
+Expo Go from the Play Store can't run this app (it's missing some of the native
+modules SDK 58 needs), so we use a **development build**: our own "Expo Go"
+built from this project. One build is enough for the whole team.
+
+**Once (one teammate):**
 
 ```bash
-npx expo start --clear
+npx eas-cli@latest login
+npx eas-cli@latest build -p android --profile development
 ```
 
-Scan the QR code with Expo Go (phone and laptop on the same Wi-Fi; if college Wi-Fi blocks it, use `npx expo start --tunnel` or a hotspot).
+When the build finishes, open the link / scan the QR code on each phone and install the APK
+(allow "install unknown apps" if Android asks). Rebuild only after adding a new native library.
+
+**Every day:**
+
+```bash
+npx expo start
+```
+
+Open the **CampusPal** dev app on the phone and pick the server (or scan the QR code).
+Phone and laptop on the same Wi-Fi; otherwise use `npx expo start --tunnel`.
 
 ## 3. First run / demo flow
 
 1. Sign up with a `@unigoa.ac.in` email → click the link in the verification email → set course & semester.
-2. Admin: **Profile → Admin tools → Load demo data** (demo classes, attendance history, notes). Or a CR: **Attendance → Create class timetable**.
+2. Admin: **Profile → Admin tools** → create demo classes and notes, or load an attendance test scenario. Or a CR: **Attendance → Create class timetable**.
 3. Join the class with that code → pick batch + electives → catch up on past lectures.
 4. Other students: **Join with class code**.
 5. **Notes tab → Upload** → scan pages with the camera → fill details → upload. Open, upvote, rate, download for offline.
@@ -40,12 +57,11 @@ Admins can load demo data, delete any class, review reported notes and read feed
 ## 4. Build the APK (for submission)
 
 ```bash
-npx eas-cli@latest login
-npx eas-cli@latest build:configure
 npx eas-cli@latest build -p android --profile preview
 ```
 
-In `eas.json`, make sure the `preview` profile has `"android": { "buildType": "apk" }`.
+`eas.json` builds an installable `.apk`. `.easignore` uploads `.env` to the build server
+(it is not in GitHub), so the APK gets the Firebase and Cloudinary config.
 The free build queue can take a while — build a few days before the deadline.
 
 ## Project structure
