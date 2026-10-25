@@ -7,7 +7,7 @@
 //      re-publish the rules (Firebase console → Firestore Database → Rules → Publish).
 //   3. They sign up / log in normally — the Admin section appears in their Profile.
 export const ADMIN_EMAILS = [
-  // 'mca24.0000.name@unigoa.ac.in',
+  // 'mca2025.0000.name@unigoa.ac.in',
   'mca2025.2536.saieel@unigoa.ac.in'
 ];
 

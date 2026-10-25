@@ -23,15 +23,17 @@ export function isCollegeEmail(email) {
 }
 
 /**
- * Reads hints from a university email such as mca24.1234.abcd@unigoa.ac.in
- * → { course: 'MCA', batchYear: 2024 }. Formats differ by course, so these
+ * Reads hints from a university email such as mca2025.1234.abcd@unigoa.ac.in
+ * → { course: 'MCA', batchYear: 2025 }. Formats differ by course, so these
  * are only suggestions the student can change.
  */
 export function parseCollegeEmail(email) {
   const local = (email || '').split('@')[0].toLowerCase();
-  const m = local.match(/^([a-z]+)(\d{2})\b/);
+  // The year can be 4 digits (mca2025.…) or 2 digits (mca25.…).
+  const m = local.match(/^([a-z]+)(\d{4}|\d{2})(?!\d)/);
   if (!m) return {};
-  return { course: m[1].toUpperCase(), batchYear: 2000 + Number(m[2]) };
+  const year = Number(m[2]);
+  return { course: m[1].toUpperCase(), batchYear: year < 100 ? 2000 + year : year };
 }
 
 /** Rough current semester from the batch year (odd sem from July, even from January). */

@@ -7,7 +7,7 @@ service cloud.firestore {
     // Keep this list in sync with ADMIN_EMAILS in src/lib/admins.js
     function adminEmails() {
       return [
-        // 'mca24.0000.name@unigoa.ac.in',
+        // 'mca2025.0000.name@unigoa.ac.in',
         'mca2025.2536.saieel@unigoa.ac.in'
       ];
     }
