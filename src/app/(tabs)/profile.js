@@ -8,6 +8,8 @@ import { Card, Heading, Screen, Title, confirm } from '../../components/ui';
 import { isAdminEmail } from '../../lib/admins';
 import { useAuth } from '../../lib/auth';
 import { useClass } from '../../lib/ClassContext';
+import { storageBackend } from '../../lib/db';
+import { notificationsAvailable } from '../../lib/expoNotifications';
 import { notificationsEnabled, setNotificationsEnabled } from '../../lib/notifications';
 import { useTheme } from '../../lib/theme';
 
@@ -82,8 +84,10 @@ export default function Profile() {
         <Item
           icon="notifications-outline"
           label="Lecture reminders"
-          sub="10 min before each lecture + evening nudge"
-          right={<Switch value={notify} onValueChange={toggleNotify} trackColor={{ true: t.primary }} />}
+          sub={notificationsAvailable ? '10 min before each lecture + evening nudge' : 'Not available in Expo Go – works in the installed app'}
+          right={
+            <Switch value={notificationsAvailable && notify} disabled={!notificationsAvailable} onValueChange={toggleNotify} trackColor={{ true: t.primary }} />
+          }
         />
         {!cls ? <Item icon="create-outline" label="Create class timetable" sub="For class representatives" onPress={() => router.push('/class/edit')} /> : null}
       </Card>
@@ -111,7 +115,7 @@ export default function Profile() {
       </Card>
 
       <Text style={{ color: t.muted, textAlign: 'center', marginTop: 16, fontSize: 13 }}>
-        CampusPal v{Constants.expoConfig?.version || '1.0.0'} · Made at GBS
+        CampusPal v{Constants.expoConfig?.version || '1.0.0'} · Made at GBS · storage: {storageBackend === 'sqlite' ? 'SQLite' : 'device (Expo Go)'}
       </Text>
     </Screen>
   );

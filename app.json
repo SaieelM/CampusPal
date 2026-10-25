@@ -18,8 +18,9 @@
       },
       "package": "com.gbs.campuspal",
       "permissions": [
-        "CAMERA",
-        "POST_NOTIFICATIONS"
+        "android.permission.CAMERA",
+        "android.permission.POST_NOTIFICATIONS",
+        "android.permission.RECORD_AUDIO"
       ]
     },
     "web": {
@@ -44,6 +45,16 @@
       ],
       "expo-font"
     ],
-    "scheme": "campuspal"
+    "scheme": "campuspal",
+    "extra": {
+      "router": {
+        "asyncRoutes": {
+          "web": true
+        }
+      },
+      "eas": {
+        "projectId": "0a6e4ef3-b142-4cf2-b44b-b5e860cff07d"
+      }
+    }
   }
 }

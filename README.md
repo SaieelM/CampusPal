@@ -5,7 +5,7 @@ Built with Expo (React Native), Firebase (Auth + Firestore) and Cloudinary (PDF 
 
 ## 1. One-time setup
 
-1. Install Node.js (LTS). (Expo Go is not used — see section 2.)
+1. Install Node.js (LTS).
 2. In this folder run:
    ```bash
    npm install
@@ -13,30 +13,35 @@ Built with Expo (React Native), Firebase (Auth + Firestore) and Cloudinary (PDF 
 3. Copy **`.env.example`** to **`.env`** and fill in the values (get the team's `.env` privately — it is not in the repo).
 4. Firebase console → **Firestore Database → Rules** → paste the contents of [`firestore.rules`](firestore.rules) → **Publish**.
 
-## 2. Run it on your phone (development build)
+## 2. Run it on your phone
 
-Expo Go from the Play Store can't run this app (it's missing some of the native
-modules SDK 58 needs), so we use a **development build**: our own "Expo Go"
-built from this project. One build is enough for the whole team.
+### Option A: Expo Go (quickest)
 
-**Once (one teammate):**
+Install **Expo Go** (SDK 58) from the Play Store, then:
+
+```bash
+npx expo start --go --clear
+```
+
+Scan the QR code with Expo Go (phone and laptop on the same Wi-Fi; otherwise add `--tunnel`).
+
+Expo Go 58 on Android is missing two native modules this app uses, so in Expo Go:
+- attendance is saved with AsyncStorage instead of SQLite (same behaviour, see `src/lib/db.js`);
+- lecture reminders are turned off.
+
+Profile shows which storage is in use at the bottom of the screen.
+
+### Option B: development build (everything works, including reminders)
+
+Our own "Expo Go" built from this project. One build is enough for the whole team:
 
 ```bash
 npx eas-cli@latest login
 npx eas-cli@latest build -p android --profile development
 ```
 
-When the build finishes, open the link / scan the QR code on each phone and install the APK
-(allow "install unknown apps" if Android asks). Rebuild only after adding a new native library.
-
-**Every day:**
-
-```bash
-npx expo start
-```
-
-Open the **CampusPal** dev app on the phone and pick the server (or scan the QR code).
-Phone and laptop on the same Wi-Fi; otherwise use `npx expo start --tunnel`.
+Install the APK from the link / QR code the build prints, then run `npx expo start` and open the **CampusPal** app.
+Rebuild only after adding a new native library.
 
 ## 3. First run / demo flow
 
